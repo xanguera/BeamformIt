@@ -1,5 +1,5 @@
 # BeamformIt
-#### BeamformIt acoustic beamforming software
+#### acoustic beamforming tool
 
 
 **BeamformIt** is an acoustic beamforming tool that accepts a variable amount of input channels and computes an output via a filter&sum beamforming technique. It makes almost no assumptions on the input data (e.g. number of channels, topology, locations, individual channel audio quality, ...).
@@ -19,11 +19,11 @@ Index
 
 1. [Compiling the code](#compilation)
 2. [Running the tool](#execution)
-  - [Simple execution](#execution_simple)
-  - [(More) complex execution](#execution_complex)
-2. How to cite
-license
-
+  - [Simple execution](#execute_simple)
+  - [(More) complex execution](#execute_complex)
+3. [Output files](#output)
+4. [How to cite](#cite)
+5. [Change Log](#changelog)
 
 <a name="compilation"></a>
 Compiling the code
@@ -82,139 +82,81 @@ The files in the channels file lists can either contain acoustic data for a sing
 * `cfg-files/RT06s_conf.cfg`: contains most of the configuration parameters passed to the system. The rest of the parameters are passed through command line arguments and usually refer to parameters changing for each show.
 For all parameters there normally is a default value as optimized for the ICSI speaker diarization system and documented in [my thesis](www.xavieranguera.com/phdthesis) (note that names might have changed a bit over the years...). A similar explanation of each parameter is also available running the program with --help. The typical parameters in the configuration file are:
 
-    ->** scroll_size (-r) [250]     scrolling size used to apply the delays and to output the signal
+    Parameter | default value | Description
+    --- | --- | ---
+    **scroll_size** (-r) | 250  |   scrolling size used to apply the delays and to output the signal
+    **window_size** (-w) | 500  |   cross correlation computation window size. It starts at each scroll point and extends passed its length.
+    nbest_amount | 1         |    amount of maximum points for the xcorrelation taken into account as the possible TDOA.
+    do_noise_threshold | 1   |    flag wether to apply an automatic noise thresholding. Possible values are:  0-> do not apply it, 1-> apply a percentage threshold (set by noise_percent), 2-> apply an absolute value threshold (set by min_xcorr).
+    noise_percent | 10      |    Percentage of frames with lower xcorr taken as noisy (min 0, max 100) , used when do_noise_threshold=1. 
+    min_xcorr | 0.1           |         Absolute value (min 0, max 1) used to threshold the frames xcorr to determine them as noisy,  used when do_noise_threshold=2.
+    do_optimum_delays | 0      |   Flag that determines whether to apply any postprocessing to the computed delays before running the sum. 
+    do_acoustic_modelling | 0  |   Defines which continuity filter to apply to the TDOA values, none(0), viterbi(1) or a simple filter(2)
+    trans_weight_nbest | 25    |  (If do_acoustic_modelling==1) Weights applied to the transition probabilities in the Viterbi TDOA decoding phase. This first weight applies to the monochannel Viterbi (first pass).
+    trans_weight_multi | 25    |  (If do_acoustic_modelling==1) Same as before, this applying to the multichannel case (pass 2).
+    do_avoid_bad_frames | 1 |    flag wether to use the bad frames in the sum process. If set to 1 it filters out those segments (of size scroll_size) which are of a very poor quality.
+    do_compute_reference | 2  |   This parameter selects how to define the reference channel for processing. 0 uses the parameter reference_channel as the reference, 1 computes it with an xcorr-based metric and 2 uses an adaptive reference channel along the meeting
+    reference_channel | 0    |   If the previous is set to 0, this determines which channel (ordered according to its order in the channels file) is the reference.
+    do_use_uem_file | 0       |   flag wether to use a uem file or not(process all the file)
+    do_adapt_weights | 1       |  flag wether to use an adaptative weights scheme or fixed weights
+    do_write_sph_files | 1     |  flag wether to output the sph files or just run the system to create the auxiliary files
+    full_path | 1              |  This flag determines the way that data is read from the channels file, as explained previously.
+    uem_file  |              |     Location of the UEM file (in case it is used)
+    **source_dir** (-i)   |      |   Location of the source files, this points to the root directory for files in the channels file to be found
+    **channels_file** (-c)  |    |   location of the channels file
+    **show_id** (-s)  |        |     Show_id of the show/meeting being processed (for example NIST_20030925-1517)
+    **result_dir** (-o)  |      |    Directory where to store the results (doesn't need to exist). Subdirectories will be created in it, one for each meeting processed.
+    help (-h)     |           |     produces this help message
+    config_file (-C)   |            |    config file to be used
+    print_features | 1        |   Prints all the feature values after reading all configuration files
+    uem_file    |            |      Optional, insert a NIST UEM file to define the regions to process
+    delay_variance | 5      |     maximum allowed variance (+- number of lags) for the delays to consider it comes from the same speaker
+    ovl_variance | 20       |      maximum allowed variance when calculating the overlap
+    do_indiv_channels | 0     |    flag to output individual channels or not. This option enables the output of an individual file for each channel used in the beamforming where each segment has been delayed and its amplitude adjusted using the computed values. If all channels obtained using this switch were summed-up we would obtaine the standard beamforming output.
+    output_format | 0	        |     Selects the audio file output format: 0. same format as the input file; 1. sph 16bit; 2. wav 16bit; 3. wav floating point
+    delays_margin | 30       |    +- ms around where we search for the peaks of the autocorrelation. This is an important parameter, as it determines how far away can microphones be. A rough estimation can be obtained by delays_margin * 360 = max meters of distance. It is good to set this parameter as tight as possible for your setup, as the system will then run faster and with less probability to select wrong delays.   
+    output_second_wav | 0    	|    Determines wether the system writes out a wav file with the 2nd best delays
+    print_level | 2        |      Determines the amount of information printed out by the program in STDOUT. Roughly, the levels have been set according to restrictiveness in the following manner: <ul><li>10. the error messages</li><li>5.  the warning messages</li><li>2.  main program messages indicating general progress</li><li>1.  progress messages from the individual functions</li><li>0.  messages of progress at segment level</li></ul>
+    do_output_residual | 0   	|		Flag to write out ONLY the residual between two signals. Does not perform any beamforming. It can be used to test how different two signals are from each other.
+    do_compute_skew | 0	|		Flag to compute an initial skew/alignment between input signals. This has been introduced in version 3.45 at the same time that internal predefined skew computation has been eliminated. If processing channels which you expect that have some skew, do apply this parameter. An example are the ICSI meetings in the NIST-RT evals.
+    skew_margin | 1000	|		+- ms around where we search for the skew between signals 
 
-    ->** window_size (-w) [500]     cross correlation computation window size. It starts at each scroll point and extends passed its length.
+Parameters in *bold* are necessary for the system to run and without them it will not start. The letters in parenthesis indicate short ways to refer to the same parameter when used as a command line argument, otherwise you need to use --parameter_name.
 
-    -> nbest_amount [1]             amount of maximum points for the xcorrelation taken into account as the possible TDOA.
-
-    -> do_noise_threshold [1]       flag wether to apply an automatic noise thresholding. 0-> do not apply it, 1-> apply a percentage threshold (set by noise_percent), 
-                                    2-> apply an absolute value threshold (set by min_xcorr).
-
-    -> noise_percent [10]           Percentage of frames with lower xcorr taken as noisy (min 0, max 100) , used when do_noise_threshold=1. 
-
-    -> min_xcorr[0.1]                    Absolute value (min 0, max 1) used to threshold the frames xcorr to determine them as noisy,  used when do_noise_threshold=2.
-
-    -> do_optimum_delays [0]         Flag that determines whether to apply any postprocessing to the computed delays before running the sum. 
-
-    -> do_acoustic_modelling [0]     Defines which continuity filter to apply to the TDOA values, none(0), viterbi(1) or a simple filter(2)
-
-    -> trans_weight_nbest [25]      (If do_acoustic_modelling==1) Weights applied to the transition probabilities in the Viterbi TDOA decoding phase. This first weight applies to the monochannel Viterbi (first pass).
-
-    -> trans_weight_multi [25]      (If do_acoustic_modelling==1) Same as before, this applying to the multichannel case (pass 2).
-
-    -> print_features [1]           flag wether to print the feaures after setting them, or not, used as debugging info
-
-    -> do_avoid_bad_frames [1]      flag wether to use the bad frames in the sum process. If set to 1 it filters out those segments (of size scroll_size) which are of a very poor quality.
-
-    -> do_compute_reference [2]     This parameter selects how to define the reference channel for processing. 0 uses the parameter reference_channel as the reference, 1 computes it with an xcorr-based metric and 2 uses an adaptive reference channel along the meeting
-
-    -> reference_channel [0]        If the previous is set to 0, this determines which channel (ordered according to its order in the channels file) is the reference.
-
-    -> do_use_uem_file [0]          flag wether to use a uem file or not(process all the file)
-
-    -> do_adapt_weights [1]         flag wether to use an adaptative weights scheme or fixed weights
-
-    -> do_write_sph_files [1]       flag wether to output the sph files or just run the system to create the auxiliary files
-
-    -> full_path [1]                This flag determines the way that data is read from the channels file, as explained previously.
-
-The following are parameters describing where files are
-
-    -> uem_file                     Location of the UEM file (in case it is used)
-
-    ->** source_dir (-i)            Location of the source files, this points to the root directory for files in the channels file to be found
-
-    ->** channels_file (-c)         location of the channels file
-
-    ->** show_id (-s)               Show_id of the show/meeting being processed (for example NIST_20030925-1517)
-
-    ->** result_dir (-o)            Directory where to store the results (doesn't need to exist). Subdirectories will be created in it, one for each meeting processed.
+* `run-files/run_rt06s` (optional): This file contains the commands to execute all of the meetings in the RT06s (conference room) test set. In this case all parameters are taken by default, only the configuration file location and the show_id are defined in the command line.
 
 
-All those with the ** symbols indicate that are necessary for the system to run and without them it will not start. The letters in parenthesis indicate short ways 
-to refer to the same parameter when used as a command line argument, otherwise you need to use --parameter_name.
-The rest of possible parameters either set in the config file or as commend arguments or using the default are:
-
-
-    -> help (-h)                     produces this help message
-
-    -> config_file                   config file to be used
-
-    -> print_features [1]            Prints all the feature values after reading all configuration files
-
-    -> uem_file                      Optional, insert a NIST UEM file to define the regions to process
-
-    -> delay_variance [5]            maximum allowed variance (+- number of lags) for the delays to consider it comes from the same speaker
-
-    -> ovl_variance [20]             maximum allowed variance when calculating the overlap
-
-    -> do_indiv_channels [0]         flag to output individual channels or not. This option enables the output of an individual file for each channel 
-                                    used in the beamforming where each segment has been delayed and its amplitude adjusted using the computed values.
-                                    If all channels obtained using this switch were summed-up we would obtaine the standard beamforming output.
-	
-		-> output_format [0]							Selects the audio file output format: 0. same format as the input file; 1. sph 16bit; 2. wav 16bit; 3. wav floating point
-
-    -> delays_margin [30]            +- ms around where we search for the peaks of the autocorrelation. This is an important parameter, as it determines how far away can 
-																		microphones be. A rough estimation can be obtained by delays_margin * 360 = max meters of distance.
-																		It is good to set this parameter as tight as possible for your setup, as the system will then run faster and with less
-																		probability to select wrong delays
-
-    -> output_second_wav [0]    			Determines wether the system writes out a wav file with the 2nd best delays
-
-    -> print_level [2]               Determines the amount of information printed out by the program in STDOUT. Roughly, the levels have been set according
-                                    to restrictiveness in the following manner:
-                                               10. the error messages
-                                               5.  the warning messages
-                                               2.  main program messages indicating general progress
-                                               1.  progress messages from the individual functions
-                                               0.  messages of progress at segment level
-
-	 -> do_output_residual [0]   			Flag to write out ONLY the residual between two signals. Does not perform any beamforming. It can be used to test how 
-																		different two signals are from each other.
-
-	 -> do_compute_skew [0]						Flag to compute an initial skew/alignment between input signals. This has been introduced in version 3.45 at the same time that internal predefined
-																		skew computation has been eliminated. If processing channels which you expect that have some skew, do apply this parameter. An example are the
-																		ICSI meetings in the NIST-RT evals.
-									
-	 -> skew_margin [1000]						+- ms around where we search for the skew between signals 
-							
-*run-files/run_rt06s (optional): This file contains the commands to execute all of the meetings in the RT06s (conference room) test set. In this case all 
-parameters are taken by default, only the configuration file location and the show_id are defined in the command line.
-
-
-
+<a name="output"></a>
 Output files
 ------
 
-After the system runs (and dumps into stdout a lot of stuff...) an output directory is created in result_dir with the same name as show_id and with some/all of the 
-files inside (depending on the config parameters being used):
+After the system runs (and dumps into stdout a lot of stuff...) an output directory is created in result_dir with the same name as `show_id` (in here `NIST_20051024-0930` as an example) and with some/all of the files inside (depending on the config parameters being used):
 
-NIST_20051024-0930.sph : sphere file containing the beamformed output signal, the main output of the system
+- `NIST_20051024-0930.sph` : sphere file containing the beamformed output signal, the main output of the system
 
-NIST_20051024-0930_2.sph : a second sphere file (will be empty if output_second_best_sph=0) containing the beamforming output using the 2nd best TDOA delays.
+- `NIST_20051024-0930_2.sph` : a second sphere file (will be empty if output_second_best_sph=0) containing the beamforming output using the 2nd best TDOA delays.
 
-NIST_20051024-0930.del : The best TDOA delays used in computing the beamforming. It contains a delay for each scroll segment and their GCC-PHAT values
+- `NIST_20051024-0930.del` : The best TDOA delays used in computing the beamforming. It contains a delay for each scroll segment and their GCC-PHAT values
 
-NIST_20051024-0930.del2 : Same as before, but for the 2nd best delays
+- `NIST_20051024-0930.del2` : Same as before, but for the 2nd best delays
 
-NIST_20051024-0930.ovl : Overlap data computed using a xcorrelation-based algorithm where 0/1 are output for each scroll frame. A 1 indicated an overlap region.
+- `NIST_20051024-0930.ovl` : Overlap data computed using a xcorrelation-based algorithm where 0/1 are output for each scroll frame. A 1 indicated an overlap region.
 
-NIST_20051024-0930.weat : weights used for each channel at each output segment.
+- `NIST_20051024-0930.weat` : weights used for each channel at each output segment.
 
-NIST_20051024-0930.info : general information from the system.
+- `NIST_20051024-0930.info` : general information from the system.
 
 
 Known limitations
 ------
 
-The BeamformIt software right now has been tested for up to 128 channels in parallel, but in theory it can hold as many as memory can manage where 
-you run it. To increase the number of channels you just need to change the variable MAXNUMCH in src/global.h
+The BeamformIt software has been tested for up to 128 channels in parallel, but in theory it can hold as many as memory can manage where you run it. To increase the number of channels you just need to change the variable MAXNUMCH in src/global.h
 
 The current version is independent on the number of channels per input file, the framerate and its resolution.
 If the input files defined in the "channels" file contain more than 1 channel, an algorithm is executed internally to split the data into individual files, storing them into the output directory in WAV format.
 All these files are kept in the directory after the execution, it is the user's choice to delete them if disk space is a constraint.
 
+<a name="cite"></a>
 How to Cite
 ------
 
@@ -246,6 +188,7 @@ Xavier Anguera, "Robust Speaker Diarization for Meetings", PhD thesis, Technical
 }
 ```
 
+<a name="changelog"></a>
 Change log
 ------
 
