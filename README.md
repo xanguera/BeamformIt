@@ -1,6 +1,6 @@
 # BeamformIt
 #### BeamformIt acoustic beamforming software
-======
+
 
 **BeamformIt** is an acoustic beamforming tool that accepts a variable amount of input channels and computes an output via a filter&sum beamforming technique. It makes almost no assumptions on the input data (e.g. number of channels, topology, locations, individual channel audio quality, ...).
 
@@ -14,6 +14,9 @@ If you use the software for research I would very much appreciate if you could c
 "Acoustic beamforming for speaker diarization of meetings", Xavier Anguera, Chuck Wooters and Javier Hernando, IEEE Transactions on Audio, Speech and Language Processing, September 2007, volume 15, number 7, pp.2011-2023.
 "Robust Speaker Diarization for Meetings", Xavier Anguera, PhD Thesis, UPC Barcelona, 2006.
 
+Index
+------
+
 1. [Compiling the code](#compilation)
 2. [Running the tool](#execution)
   - [Simple execution](#execution_simple)
@@ -22,79 +25,62 @@ If you use the software for research I would very much appreciate if you could c
 license
 
 
-
-
-
-
-
-As of version 3.5 there is only ONE external library required by BeamformIt:
-     - Libsndfile: used to input-output data from the audio files, letting the software deal with the sound files as standard files
-       http://www.mega-nerd.com/libsndfile/
-
-Additionally, doxygen can be used to compile the documentation of the source-code
-
 <a name="compilation"></a>
 Compiling the code
 ------
 
-First of all, you need to make sure that the Makefile is pointing to the right directories for the sndfile library (or that it has been installed in the system). 
-The program uses cmake to compile the code. This means we can usually compile with:
-cmake .
-make
+As of version 3.5 there is only ONE external library required by BeamformIt:
+  - [Libsndfile](http://www.mega-nerd.com/libsndfile/): used to input-output data from the audio files, letting the software deal with the sound files as standard files
 
-You can also type "make clean" to clean up any executable or .o files left from previous compilations.
-To compile the code documentation execute "make documentation", this will create a doxigen documentation structure under docs.
+Additionally, doxygen can be used to compile the documentation of the source-code
+
+To compile the code, first of all, you need to make sure that the Makefile is pointing to the right directories for the sndfile library (or that it has been installed in the system). 
+The program uses cmake to compile the code. This means we can usually compile with:
+`cmake .`
+`make`
+
+You can also type `make clean` to clean up any executable or .o files left from previous compilations.
+To compile the code documentation execute `make documentation`, this should create a doxigen documentation structure under docs.
 
 <a name="execution"></a>
 Running the tool
 ------
 
 This section describes how to run the system. There is a VERY simple way and a more complicated way.
-The simple way is oriented towards casual users of the tool. The more complicated way is part of legacy code that speech processing people
-has been using for beamforming audio signals.
+The simple way is oriented towards casual users of the tool. The more complicated way is part of the legacy code that speech processing people have been using for beamforming audio signals.
 
 <a name="execute_simple"></a>
 #### simple (but limited) way
-use the script "do_beamforming.sh" provided in the base directory to apply BeamformIt to all audio files within a certain directory.
+
+Use the script `do_beamforming.sh` provided in the base directory to apply BeamformIt to all audio files within a certain directory.
 The script takes 2 parameters:
 - The directory where to find the audio files to be beamformed (it takes all files ending with .wav and .sph)
 - The output name "show_id" we want to give to the files
-The script will process all files and create a directory with the output files under ./output/$show_id
+The script will process all files and create a directory with the output files under `./output/$show_id`
 
 <a name="execute_complex"></a>
 #### more complicated way
-This way allows for the use of a single channels file to process multiple file configurations and to have all audio files for different 
-configurations in the same directory. This is the way that speech researchers have been using BeamformIt until now (with the slight change 
-that some config parameters might have now changed)
+
+This way allows for the use of a single channels file to process multiple file configurations and to have all audio files for different configurations in the same directory. This is the way that speech researchers have been using BeamformIt until now (with the difference that some config parameters might have now changed)
 
 To explain the way to run it we follow an example based on the RT06s NIST evaluation for meetings (conference room data).
 
-Prerequisites: To run the beamforming we need to have the input files in .sph (sphere) or .wav format, containing one or more channels per file. Sometimes a preprocesing
-is performed to the data prior to beamforming. A usual preprocessing step which has given good results at ICSI is Wiener filtering each individual channel.
+*Prerequisites*: To run the beamforming we need to have the input files in .sph (sphere) or .wav format, containing one or more channels per file (having a set of files with mixed number of channels is fine). Sometimes a preprocesing is performed to the data prior to beamforming. A usual preprocessing step which has given good results at ICSI is Wiener filtering each individual channel.
 
-Config files: There are 2 files that need editing before running the beamforming. For this test they are cfg-files/RT06s_conf.cfg and cfg-files/channels.
-The first determines the location of all data and the running parameters, as well as the location of the second file. The first file is passed to the executable 
-for each execution.
+*Config files*: There are 2 files that need editing before running the beamforming. For this example they are a config file `cfg-files/RT06s_conf.cfg` and a channels file `cfg-files/channels`.
+The config file determines the location of all data and the running parameters, as well as the location of the channels file. The channels file contains information of which individual audio files will be combined into a single output file. The config file is the only mandatory parameter to the executable with `-C` .
 
-Let us see the format and possible parameters in each case:
+Let us see in detail the format and possible parameters in each case:
 
+* `cfg-files/channels`: contains the list of input channels. This file is the one that solely determines how many (and which) channels we are using in the beamforming, therefore this file needs to be different for MDM (multiple distant microphones), ADM (all distant microphones) and other combinations of microphones processed. 
+For any given desired beamforming output you need to insert a line in the channels file with the format: `show_id list_of_files`
+Where `show_id` must be the same alphanumeric string as the one later passed to the system (through command line or config file) through the parameter `show_id`, identifying which show/ID to process. 
+The `list_of_files` is a list of *space-separated* audio files to be beamformed together. The actual paths to each of these files do not necessarily need to be defined inside the channels file (it would be very redundant and would create very long lines). BeamformIt will compose the file names by concatenating each `file_name` in `list_of_files` with the config variable `source_dir` as `source_dir/file_name`.
+The total number of channels is obtained automatically from this list of files. Be careful with the inclusion of extra spaces in between files or at the end, as these will be treated as extra files and will cause the system to crash.
+The files in the channels file lists can either contain acoustic data for a single channel or data for multiple channels (as is the case of AMI circular arrays data). BeamformIt will process either case without any problem. In the case of multiple channels it will create a set of temporal files containing only 1 channel each. These are created in the output directory and can be deleted by hand after execution.
 
-* cfg-files/channels: contains the list of input channels. This file is the one that solely determines how many (and which) channels we are using in the beamforming, 
-therefore this file needs to be different for MDM (multiple distant microphones), ADM (all distant microphones) and other combinations of microphones processed. 
-For any given beamforming set you need to insert a line in the channels file with the format: show_id list_of_files
-The show_id must be the same as the one later passed to the system through the parameter "show_id", identifying which show/ID to process. 
-The list_of_files is a list of space-separated audio files to be beamformed together. The actual paths to each of these files (${file_name}) is composed with ${source_dir}/${file_name} where
-"source_dir" is a system parameter.
-The total number of channels is obtained automatically from this list of files. Be careful with the inclusion of extra spaces in between files or at the end, as these will be treated as extra files and
-will cause the system to crash.
-The files in the channels file lists can either contain acoustic data for a single channel or data for multiple channels (as is the case of AMI circular arrays data). 
-Currently the functions used to open these files check for this difference and upon recognizing the existence of multiple channels it will create a set of temporal 
-files containing only 1 channel each. These are created in the output directory and can be deleted by hand after execution.
-
-* cfg-files/RT06s_conf.cfg: contains most of the configuration parameters passed to the system. The rest of the parameters are passed through the command line arguments 
-and usually refer to parameters changing for each show.
-For all parameters there normally is a default value as optimized for the ICSI speaker diarization system and documented in my thesis (www.xavieranguera.com/phdthesis). A similar explanation of each 
-parameter is also available running the program with --help. The typical parameters in the configuration file are:
+* `cfg-files/RT06s_conf.cfg`: contains most of the configuration parameters passed to the system. The rest of the parameters are passed through command line arguments and usually refer to parameters changing for each show.
+For all parameters there normally is a default value as optimized for the ICSI speaker diarization system and documented in [my thesis](www.xavieranguera.com/phdthesis) (note that names might have changed a bit over the years...). A similar explanation of each parameter is also available running the program with --help. The typical parameters in the configuration file are:
 
     ->** scroll_size (-r) [250]     scrolling size used to apply the delays and to output the signal
 
