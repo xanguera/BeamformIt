@@ -12,7 +12,7 @@
 #include <iostream>
 #include <cstring>
 
-#include "samplerate.h"
+//#include "samplerate.h"
 #include "sndfile.h"
 #include "global.h"
 #include "delaysum.h"
@@ -55,9 +55,9 @@ void DelaySum::init()
 
   //define the window size in frames
   (*m_config).windowFrames = (int)((*m_config).window *(m_sampleRateInMs)); //the window we compute in frames
-	
+
   //we reserve the memory for the data
-	m_chanData.resize(m_numCh);	
+	m_chanData.resize(m_numCh);
   for(int count=0; count< m_numCh; count++)
   {
     m_chanData[count].resize((*m_config).windowFrames, 0);
@@ -67,9 +67,9 @@ void DelaySum::init()
 
   //we compute how many delays we will process
   int totalNumDelays = (int)((m_frames - (*m_config).windowFrames - m_biggestSkew - m_UEMGap)/((*m_config).rate*m_sampleRateInMs));
-  (*m_tdoa).set_totalNumDelays(totalNumDelays); 
+  (*m_tdoa).set_totalNumDelays(totalNumDelays);
 
-  char tmp_string[1024]; 
+  char tmp_string[1024];
 	sprintf(tmp_string, "Total number of delays to be computed: %d\n", totalNumDelays);
   m_log.print_this(tmp_string, 1);
 }
@@ -82,7 +82,7 @@ void DelaySum::init()
    \return Nothing
 */
 
-/*! 
+/*!
   defines some show-dependent parameters
   \param &vm Variables_map used by the library program_options to hold all input parameters read from the command line or the config file. All these parameters are transfered to the config structure afterwards.
   \param FileInOut &fileInOut class pointer with input/output file descriptors
@@ -133,7 +133,7 @@ void DelaySum::Set_Show_Parameters()
   if(!strcmp(m_dataSet,"ICSI"))
   {
     tmp_margin = 20; // ~ 12(skew) + 8(mics) 20
-  }  
+  }
   else if(!strcmp(m_dataSet,"NIST"))
   {
     tmp_margin = 10; // ~ 10(mics)
@@ -192,7 +192,7 @@ int DelaySum::find_best_channel_xcorr()
       xcorr_values[count2][count1] = xcorr_values[count1][count2];
     }
   }
-  
+
   //now we accumulate all xcorrs for each channel and determine the biggest one
   vector<float> ave_xcorr(m_numCh, 0);
   for(int count1=0; count1< m_numCh; count1++)
@@ -223,7 +223,7 @@ int DelaySum::find_best_channel_xcorr()
 
 /*!
 	Compute a measure of the quality of the beamformed signal by performing the average of the xcorr values of such signal
-	with all individual input signals. Such metric is not comparable across recordings, but is useful to compare two different 
+	with all individual input signals. Such metric is not comparable across recordings, but is useful to compare two different
 	beamforming outputs for one particular recording. The higher the value, the better
 */
 void DelaySum::signalQuality()
@@ -246,17 +246,17 @@ void DelaySum::signalQuality()
 		fprintf((*m_fileInOut).infofd, "%f ", xcorr_values[count1]);
   }
 	fprintf((*m_fileInOut).infofd, "\n");
-	
+
 	//make the average on these averages
 	float ave_xcorr = 0;
 	for(int count1=0; count1< m_numCh; count1++)
 		ave_xcorr += xcorr_values[count1];
 
 	ave_xcorr /= m_numCh;
-	
+
   char tmp_string[1024]; sprintf(tmp_string,"Quality score for beamformed signal is %f\n", ave_xcorr);
   m_log.print_this(tmp_string, 0);
-  
+
 	//write out the score into the info file
 	fprintf((*m_fileInOut).infofd, "Overall quality score: %f\n", ave_xcorr);
 }
@@ -274,7 +274,7 @@ int DelaySum::find_best_channel_xcorr_adapt()
 }
 
 /*
-  Version of the algorithm above to get the best channel considering a single window for each channel 
+  Version of the algorithm above to get the best channel considering a single window for each channel
 	for the xcorr comparison but relies in an adaptative channel weighting to select the optimum channel
   \param dtart_frame starting frame for the computation
   \param ch_delays the channel optimum delays at this point
@@ -282,7 +282,7 @@ int DelaySum::find_best_channel_xcorr_adapt()
 */
 int DelaySum::find_best_channel_xcorr_adapt(long start_frame, vector<int> ch_delays)
 {
-  //variable to hold the xcorr matrix 
+  //variable to hold the xcorr matrix
   vector<vector<float> > xcorr_values;//[m_numCh][m_numCh];
   for(int i=0; i<m_numCh; i++)
   {
@@ -297,7 +297,7 @@ int DelaySum::find_best_channel_xcorr_adapt(long start_frame, vector<int> ch_del
   compute_local_energy(m_chanData);
 
 
-	//Alternative: just use the energy in every channel to determine the best channel in every step	
+	//Alternative: just use the energy in every channel to determine the best channel in every step
 	float alpha = (*m_config).refAdaptRatio;
 	int best_channel = 0;
 	float best_energy = -1;
@@ -316,7 +316,7 @@ int DelaySum::find_best_channel_xcorr_adapt(long start_frame, vector<int> ch_del
 
 
     /*
-	//Alternative 2: normalize the energy in every channel by a slow moving average	
+	//Alternative 2: normalize the energy in every channel by a slow moving average
 	float alpha = 0.1;
 	int best_channel = 0;
 	float best_energy = -1;
@@ -335,7 +335,7 @@ int DelaySum::find_best_channel_xcorr_adapt(long start_frame, vector<int> ch_del
 */
 
 /*
-	//Alternative 3: select only among the channel pair with highest xcorr between reference and other channels. Selection is done by energy	
+	//Alternative 3: select only among the channel pair with highest xcorr between reference and other channels. Selection is done by energy
 	float alpha = 0.1;
 	int best_channel = 0;
 	float best_energy = -1;
@@ -376,9 +376,9 @@ int DelaySum::find_best_channel_xcorr_adapt(long start_frame, vector<int> ch_del
     }
     sum_vector_xcorr += vector_xcorr[channel_count1];
   }
-            
+
   //in weird cases the sum could be 0, we avoid that (This would happen when all xcorr values are negative)
-  if(sum_vector_xcorr == 0) 
+  if(sum_vector_xcorr == 0)
 	{
 		sum_vector_xcorr = 1;
 		for(int i=0; i<m_numCh; i++)
@@ -423,7 +423,8 @@ void DelaySum::compute_scalling_factor()
   float max_val_segment[m_numCh];
   vector<float> median_val_segment;
   int num_segments=0;
-  int total_num_segments = 10; //we will only compute (at max) these number of segments
+  int total_num_segments_initial = 10; //we will only compute (at max) these number of segments
+  int total_num_segments = total_num_segments_initial; // it can be variable
   int signal_scroll; //advancement in the signal for the next segment
   int segment_duration = 10 * m_sampleRate; //10 seconds segments
   float sum_weighting;
@@ -442,9 +443,16 @@ void DelaySum::compute_scalling_factor()
     num_segments = 0;
     start_place = (long)(m_UEMGap);
     //check if we have enough signal for the number of segments
-    if(((m_frames - start_place)/segment_duration) < total_num_segments)
+    if(((m_frames - start_place)/segment_duration) < total_num_segments_initial)
     {
-      total_num_segments = int((m_frames - start_place)/segment_duration); 
+      total_num_segments = int((m_frames - start_place) / segment_duration);
+      if (total_num_segments < 1)
+      {
+				total_num_segments = 1;
+				segment_duration = m_frames - start_place; //we do not have more frames
+      }
+      char tmp_string[1024]; sprintf(tmp_string,"Set the total number of segments from %d to %d for computing scalling factor, with segment duration %d\n", total_num_segments_initial, total_num_segments, segment_duration);
+      m_log.print_this(tmp_string, 1);
     }
     signal_scroll = int((m_frames - start_place)/total_num_segments);
     char tmp_string[1024]; sprintf(tmp_string,"Processing channel %d\n", channel_count);
@@ -509,7 +517,7 @@ void DelaySum::compute_skew()
     }
 }
 
-/*! 
+/*!
   Computes the skew for one channel pair (only used in the ICSI channels)
   \param file_in SNDFILE pointer to the channel input
   \param file_ref SNDFILE pointer to the reference channel
@@ -521,7 +529,7 @@ void DelaySum::compute_skew()
 int DelaySum::skew_detector(SNDFILE* file_in, SNDFILE* file_ref, long frames, long samplerate)
 {
   //we select 25 pieces of 10 seconds each and calculate the average delay (I hope this way I'll get different people talking)
-  
+
   int number_pieces = 25;
   int count;
   long scroll = frames/(number_pieces+2);
@@ -552,7 +560,7 @@ int DelaySum::skew_detector(SNDFILE* file_in, SNDFILE* file_ref, long frames, lo
     {
       m_log.print_this("ERROR: Error retrieving data for file_ref, not enough samples in the file\n", 10);
       exit(1);
-    }      
+    }
     //we do the xcorr
     (*m_tdoa).xcorrelation_FFTReal(&delays, &values, 1, data_in, data_ref, maxSkew, length, FFTSize);
     average_skew += delays;
@@ -572,7 +580,7 @@ int DelaySum::skew_detector(SNDFILE* file_in, SNDFILE* file_ref, long frames, lo
 /*!
   looks into the UEM file and retrieve the start and end time for the defined show
   \param uemFile Name of the file to look into
-  \param show Name of the show/meeting being processed 
+  \param show Name of the show/meeting being processed
   \param start_time Start time to be processed (in seconds)
   \param end_time End time to be processed (in seconds)
   \return Nothing
@@ -589,7 +597,7 @@ void DelaySum::GetUEMInfo(char *uemFile, char *showName, float *start_time, floa
     m_log.print_this(tmp_string, 10);
     exit(1);
   }
-  
+
   char line[256];
   while(fgets(line, 300, uemfd) != NULL)
   {
@@ -620,7 +628,7 @@ void DelaySum::SetUEMlimits()
     GetUEMInfo((char*)(*m_config).UEMFILE.c_str(), (char*)((*m_config).SHOWNAME.c_str()), &m_UEMGap, &m_UEMEndTime);
     char tmp_string[1024]; sprintf(tmp_string,"UEM Start time %f , end time %f\n", m_UEMGap, m_UEMEndTime);
     m_log.print_this(tmp_string, 1);
-    
+
     if(m_frames >=(long)(m_UEMEndTime * m_sampleRate))
     {
       m_frames = (long)(m_UEMEndTime * m_sampleRate); //define when to finish
@@ -690,7 +698,7 @@ float DelaySum::delay_detector(SNDFILE* file_in1, SNDFILE* file_in2, long frames
       {
         m_log.print_this("ERROR: Error retrieving data for file_in2, not enough samples in the file\n", 10);
         exit(1);
-      }      
+      }
       //we do the xcorr
 
       (*m_tdoa).xcorrelation_FFTReal(delays, values, numNbest, data_in, data_ref, margin, length, FFTSize);
@@ -735,7 +743,7 @@ float DelaySum::variance_detector(SNDFILE* file_in, SNDFILE* file_ref, long fram
   long FFTSize = int(pow(2.0, ceil(log(double(length))/log(2.0))));
   int margin = (int)((*m_config).margin * samplerate/1000); //we give ample margin to find good correlations
   float *data_in = (float*)malloc(length*sizeof(float));
-  float *data_ref = (float*)malloc(length*sizeof(float));  
+  float *data_ref = (float*)malloc(length*sizeof(float));
   int delays;
   float values;
 
@@ -765,7 +773,7 @@ float DelaySum::variance_detector(SNDFILE* file_in, SNDFILE* file_ref, long fram
     {
       m_log.print_this("ERROR: Error retrieving data for file_ref, not enough samples in the file\n", 10);
       exit(1);
-    }      
+    }
     //we do the xcorr
     (*m_tdoa).xcorrelation_FFTReal(&delays, &values, 1, data_in, data_ref, margin, length, FFTSize);
 
@@ -791,7 +799,7 @@ float DelaySum::variance_detector(SNDFILE* file_in, SNDFILE* file_ref, long fram
       m_log.print_this(tmp_string, 0);
     }
 
-      
+
   }
   average_delay /= used_pieces;
   variance = average_delay2/used_pieces - average_delay * average_delay;
@@ -809,7 +817,7 @@ float DelaySum::variance_detector(SNDFILE* file_in, SNDFILE* file_ref, long fram
 /*!
   Computes the channels weights by adapting them from the xcorr values across channels and as a
   function of the previous values. It also cancels out any channel which is too bad.
-  
+
   \param frame Segment number being computed
   \return Nothing
 */
@@ -851,11 +859,11 @@ void DelaySum::Compute_Sum_Weights(int frame)
       }
       sum_vector_xcorr += vector_xcorr[channel_count];
     }
-  }	  
-            
+  }
+
   //in weird cases the sum could be 0 (for example when there is no correlation between channels), we avoid that
   //we avoid doing a mean shift to maintain the relation between all samples
-  if(sum_vector_xcorr == 0) 
+  if(sum_vector_xcorr == 0)
 	{
 		sum_vector_xcorr = 1;
 		//all correlations are 0, we force the overall weights to homogeneous
@@ -877,7 +885,7 @@ void DelaySum::Compute_Sum_Weights(int frame)
 
     //only adapt when it has not been labelled as noise
     if(!((*m_tdoa).get_delayFilters(channel_count, frame) & F_NOISE))
-    {	  
+    {
       m_globalWeight[channel_count] = 0.95 * m_globalWeight[channel_count] + 0.05 * local_xcorr_weight[channel_count];
     }
 
@@ -901,7 +909,7 @@ void DelaySum::Compute_Sum_Weights(int frame)
   }
   fprintf((*m_fileInOut).featwfd,"\n");
 
-      
+
   //after adaptation we renormalize again (now the global xcorr weight)
   float sum_output_weights = 0;
   for(int channel_count=0; channel_count< m_numCh; channel_count++)
@@ -912,18 +920,18 @@ void DelaySum::Compute_Sum_Weights(int frame)
 
   //we avoid the case sum=0
   if(sum_output_weights == 0) {sum_output_weights = 1;}
-      
+
   for(int channel_count=0; channel_count< m_numCh; channel_count++)
-  {     
+  {
       //TEST
       //printf("Weights: %f / %f\n", output_weight[channel_count], sum_output_weights);
     m_channelWeight[channel_count] = output_weight[channel_count]/sum_output_weights; //xcorr weights
   }
 }
 
-/*! 
+/*!
   for each pair of channels I compute their xcorr value at the best delay
-  
+
   \param chan_out Vector containing data from all channels at optimum points
   \return nothing
 */
@@ -950,9 +958,9 @@ void DelaySum::compute_local_xcorr_values(vector<vector<float> > &chan_out)
       {
         frames_both = m_chanFramesRead[channel_count1];
       }
-	  
+
       //compute the xcorr
-      m_localXcorr[channel_count1][channel_count2] = 0;	  
+      m_localXcorr[channel_count1][channel_count2] = 0;
       for(int i=0; i< frames_both; i++)
       {
         m_localXcorr[channel_count1][channel_count2] += chan_out[channel_count1][i]*chan_out[channel_count2][i];
@@ -960,18 +968,18 @@ void DelaySum::compute_local_xcorr_values(vector<vector<float> > &chan_out)
       //normalize by the average energies
       m_localXcorr[channel_count1][channel_count2] /= (m_localEnergy[channel_count1]*m_localEnergy[channel_count2]);
 
-	  
+
       //don't allow xcorr values to be negative: this means that the correlation is too bad.
       if(m_localXcorr[channel_count1][channel_count2] < 0)
       {
         m_localXcorr[channel_count1][channel_count2] = 0;
       }
-	  
+
 
       //normalize over all frames
       //m_localXcorr[channel_count1][channel_count2] /= frames_both;
       //symmetrize it
-      m_localXcorr[channel_count2][channel_count1] = m_localXcorr[channel_count1][channel_count2];      
+      m_localXcorr[channel_count2][channel_count1] = m_localXcorr[channel_count1][channel_count2];
     }
   }
 }
@@ -1000,12 +1008,12 @@ void DelaySum::compute_local_energy(vector<vector<float> > &chan_out)
       m_localEnergy[channel_count] = 1;
     }
   }
-  
+
 }
 
 /*!
   Does the sum of the channels with the optimum weights and delays for one segment, overlapping according to the analysis window
-  
+
   \param best_out 1/2-best TDOa values to output
   \return Nothing
 */
@@ -1014,18 +1022,18 @@ void DelaySum::Channels_Sum(int best_out)
 {
     char tmp_string[1024];
   m_log.print_this("Memory allocation for all data\n", 1);
-  //for the ICSI shows we need to make sure that any possible skew will not interfere to the 
+  //for the ICSI shows we need to make sure that any possible skew will not interfere to the
   //memory allocation on the last window
   int max_buffer_size = 2 * m_framesOut + (2 * (*m_config).windowFrames) + m_biggestSkew;
 
   //vector to hold the output values before writting them to the file, one for each channel
-  vector<vector<float> > chan_out; 
+  vector<vector<float> > chan_out;
 	chan_out.resize(m_numCh);
   for(int i=0; i<m_numCh; i++)
   {
 		chan_out[i].resize(max_buffer_size);
   }
-  
+
   //single channel floating point buffer
   vector<float> outputf(max_buffer_size);
 
@@ -1033,7 +1041,7 @@ void DelaySum::Channels_Sum(int best_out)
   vector<vector<float> > outputf_chan;
   for(int channel_count=0; channel_count<m_numCh; channel_count++)
   {
-    outputf_chan.push_back(vector<float>(max_buffer_size));      
+    outputf_chan.push_back(vector<float>(max_buffer_size));
   }
 
   int frames_to_read;
@@ -1045,7 +1053,7 @@ void DelaySum::Channels_Sum(int best_out)
 
   //we go through all the computed delays, gathering the data and doing the sum
   for(int count=0; count< totalNumDelays; count++)
-  {      
+  {
 
     /////initialize the output and move the overlapping segment from the previous window
     for(int i=0; i < m_framesOut; i++)
@@ -1061,14 +1069,14 @@ void DelaySum::Channels_Sum(int best_out)
         {
           outputf_chan[channel_count][i] = outputf_chan[channel_count][i+m_framesOut];
           outputf_chan[channel_count][i+m_framesOut] = 0;
-        }		  
+        }
       }
     }
 
     //////read the delayed data for each channel
     int data_start_out[MAXNUMCH];
     for(int channel_count=0; channel_count< m_numCh; channel_count++)
-    {   
+    {
 
       //define the start point to read the data
 	  int finalDel = (*m_tdoa).get_finalDelays(channel_count, count, best_out);
@@ -1085,7 +1093,7 @@ void DelaySum::Channels_Sum(int best_out)
           chan_out[channel_count][i] = 0;
         }
       }
-	 
+
       //define the length to read, taking care of the end of the file
       //we consider the reference channel to find the end of the file
       if(count+1 == totalNumDelays)
@@ -1109,17 +1117,17 @@ void DelaySum::Channels_Sum(int best_out)
       }
 
     }
-            
+
     //we compute the pairwise xcorr of all channels
     compute_local_xcorr_values(chan_out);
-      
+
     //we compute the weights to be used
     Compute_Sum_Weights(count);
 
 
     /////do the weighted sum
     for(int channel_count=0; channel_count< m_numCh; channel_count++)
-    { 
+    {
       float gain_step = m_overallWeight * m_channelWeight[channel_count]/m_framesOut;
       float gain = 0;
 
@@ -1128,7 +1136,7 @@ void DelaySum::Channels_Sum(int best_out)
 
       for(int i=0; i< (m_chanFramesRead[channel_count]+data_start_out[channel_count]); i++)
       {
-        outputf[i] += chan_out[channel_count][i] * gain; 
+        outputf[i] += chan_out[channel_count][i] * gain;
 
         //TEST
         //printf("Output: %f += %f * %f\n", outputf[i], chan_out[channel_count][i], gain);
@@ -1136,9 +1144,9 @@ void DelaySum::Channels_Sum(int best_out)
         //case for the individual channels
         if((*m_config).INDIV_CHANNELS)
         {
-          outputf_chan[channel_count][i] += chan_out[channel_count][i] * gain; 
+          outputf_chan[channel_count][i] += chan_out[channel_count][i] * gain;
         }
-	      
+
         //calculate next gain
         if(i < m_framesOut)
         {
@@ -1152,7 +1160,7 @@ void DelaySum::Channels_Sum(int best_out)
         }
       }
     }
-      
+
     ////write out the result
     int write_samples_out;
     if(count+1 == totalNumDelays)
@@ -1166,20 +1174,20 @@ void DelaySum::Channels_Sum(int best_out)
 
     //write into the file, will write in whatever format the file is in
     sf_writef_float((*m_fileInOut).outfd[best_out], &outputf[0], write_samples_out);
-      
+
     //case for the individual channels
     if((*m_config).INDIV_CHANNELS)
     {
       for(int channel_count=0; channel_count< m_numCh; channel_count++)
       {
-        sf_writef_float((*m_fileInOut).outputfd[channel_count], &(outputf_chan[channel_count][0]), write_samples_out);		  
+        sf_writef_float((*m_fileInOut).outputfd[channel_count], &(outputf_chan[channel_count][0]), write_samples_out);
       }
     }
-    
+
   }
-      
+
   m_log.print_this("finished writting files\n", 1);
-  
+
   //force to sync all the outputs
   if((*m_config).INDIV_CHANNELS)
   {
@@ -1189,7 +1197,7 @@ void DelaySum::Channels_Sum(int best_out)
     }
   }
   sf_write_sync((*m_fileInOut).outfd[best_out]);
-  
+
   sprintf(tmp_string, "Sinc-ed all files' outputs for the %d best\n", best_out);
   m_log.print_this(tmp_string, 1);
 
@@ -1209,7 +1217,7 @@ void DelaySum::Set_Channels_Weights()
 }
 
 /*
-  checks that we don't overpass the end of the file when accessing a particular data frame, 
+  checks that we don't overpass the end of the file when accessing a particular data frame,
   \param counter Segment number to be processed
   \return the start point or -1 if before start
 
@@ -1255,7 +1263,7 @@ void DelaySum::get_channels_data(long file_start, vector<int> ch_delays)
 {
   long vector_start = 0; //position in the vector where to start writting data from the file
   int real_window; // number of frames that are read from the file. It is = window_size if there is no skew
-  int skew; 
+  int skew;
 
   //file start is where to start to read from the file
 
@@ -1307,7 +1315,7 @@ void DelaySum::computeTDOAValues(long start_frame, int delayNum)
 {
     ///we retrieve the data for all the channels
     get_channels_data(start_frame);
-     
+
     ///we do the xcorrelation, it returns N maximum delays in order from max to min. We don't do it for the reference one, it's set to 0
 
     vector<int> bestDelays = (*m_tdoa).xcorrelation_FFTReal_full(delayNum, m_chanData);
@@ -1320,7 +1328,7 @@ void DelaySum::computeTDOAValues(long start_frame, int delayNum)
 }
 
 /*!
-	Evaluation function that computes the difference between the two imput channels and writes it to the output file. 
+	Evaluation function that computes the difference between the two imput channels and writes it to the output file.
 	It can be used to compare 2 different runs of beamformit.
 
 */
@@ -1338,12 +1346,12 @@ void DelaySum::computeChannelsDifference()
 	}
 
   //vector to hold the output values before writting them to the file, one for each channel
-  vector<vector<float> > chan_out; 
+  vector<vector<float> > chan_out;
   for(int i=0; i<m_numCh; i++)
   {
     chan_out.push_back(vector<float>(max_buffer_size));
   }
-  
+
   //single channel floating point buffer
   vector<float> outputf(max_buffer_size);
   vector<float> outputf2(max_buffer_size);
@@ -1358,25 +1366,25 @@ void DelaySum::computeChannelsDifference()
 
     //////read the data for each channel
     for(int channel_count=0; channel_count< m_numCh; channel_count++)
-    {   
+    {
       //read the data for each channel
       sf_seek((*m_fileInOut).inputfd[channel_count], frameCount, SEEK_SET);
       m_chanFramesRead[channel_count] = sf_readf_float((*m_fileInOut).inputfd[channel_count], &chan_out[channel_count][0], frames_to_read);
       if(m_chanFramesRead[channel_count]> max_buffer_size)
       {
-        char tmp_string[1024]; 
+        char tmp_string[1024];
 				sprintf(tmp_string, "Error: Exceeded maximum storage buffer size in frame %d, channel %d! maximum: %d, read: %d\n", frameCount, channel_count, max_buffer_size, m_chanFramesRead[channel_count]);
         m_log.print_this(tmp_string, 10);
         exit(1);
       }
-    }      
+    }
 
 		//compute the output signal
 		int length;
 		if(m_chanFramesRead[0] > m_chanFramesRead[1])
 			length = m_chanFramesRead[1];
 		else
-			length = m_chanFramesRead[0];			
+			length = m_chanFramesRead[0];
 		for(int i=0; i < length; i++)
 		{
 			outputf[i] = chan_out[0][i] - chan_out[1][i];
@@ -1386,18 +1394,16 @@ void DelaySum::computeChannelsDifference()
 
     ////write out the result
     //write into the file, will write in whatever format the file is in
-	sf_writef_float((*m_fileInOut).outfd[0], &outputf[0], length);          
-	sf_writef_float((*m_fileInOut).outfd[1], &outputf2[0], length);          
+	sf_writef_float((*m_fileInOut).outfd[0], &outputf[0], length);
+	sf_writef_float((*m_fileInOut).outfd[1], &outputf2[0], length);
   }
 
   //force to sync
   sf_write_sync((*m_fileInOut).outfd[0]);
   sf_write_sync((*m_fileInOut).outfd[1]);
-		
+
 	//output the total power of the residual
   char tmp_string[1024]; sprintf(tmp_string, "Residual average power: %f\n", signalPower/m_frames);
-  m_log.print_this(tmp_string, 10);	
+  m_log.print_this(tmp_string, 10);
 
 }
-
-
