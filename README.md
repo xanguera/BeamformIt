@@ -31,6 +31,7 @@ Compiling the code
 
 As of version 3.5 there is only ONE external library required by BeamformIt:
   - [Libsndfile](http://www.mega-nerd.com/libsndfile/): used to input-output data from the audio files, letting the software deal with the sound files as standard files
+
 In Ubuntu, you can install libsndfile `sudo apt-get install libsndfile1-dev`
 
 Additionally, doxygen can be used to compile the documentation of the source-code
