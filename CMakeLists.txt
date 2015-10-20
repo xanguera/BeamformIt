@@ -1,5 +1,5 @@
 ################################################################################
-# BeamformIt: acoustic synchronization and beamforming toolkit 
+# BeamformIt: acoustic synchronization and beamforming toolkit
 ################################################################################
 
 cmake_minimum_required (VERSION 2.6)

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include "fileinout.h"
-#include "samplerate.h" 
+//#include "samplerate.h"
 
 //char tmp_string[1024];
 
@@ -39,14 +39,14 @@ void FileInOut::init()
 {
 }
 
-/*! 
+/*!
   It first gets the information about the files being processed from the channels file. It reads in the
   names of the input files, does not extract the channels information yet
 
   It then opens input files to be processed and obtains the number of channels to be processed, allowing for each file to
-  contain multiple channels each. It such case, it extracts all channels in the output directory as individual channel files, 
+  contain multiple channels each. It such case, it extracts all channels in the output directory as individual channel files,
   and opens those.
-  
+
   \return Number of channels read
 
 */
@@ -107,7 +107,7 @@ int FileInOut::Open_Input_Channels()
       printf("[ERROR]: No information on showID %s was found in channels file %s\n", (*m_config).SHOWNAME.c_str(), (*m_config).CHANNELSFILE.c_str());
       exit(-1);
     }
-    
+
     m_numFiles = num_files;
 
     ////// Then opens each file and gets its channel#, if it is >1, it creates temporal files
@@ -337,7 +337,7 @@ int FileInOut::Open_Input_Channels()
         {
           char tmp_string[1024]; sprintf(tmp_string, "output file %s open error\n", file_out);
           m_log.print_this(tmp_string, 10);
-          exit(1);     
+          exit(1);
         }
       }
 
@@ -361,14 +361,14 @@ int FileInOut::Open_Input_Channels()
         {
           for(int j=0; j<number_files; j++)
           {
-            ptr_out_buffer[j][i] = in_buffer[i*number_files+j];            
-          }          
+            ptr_out_buffer[j][i] = in_buffer[i*number_files+j];
+          }
         }
         //write to the output files
         for(int i=0; i<number_files; i++)
         {
           sf_write_float(tmpfd[i], ptr_out_buffer[i], frames_read);
-        }        
+        }
         frame_count += frames_read;
       }
 
@@ -398,7 +398,7 @@ int FileInOut::Open_Input_Channels()
         {
           char tmp_string[1024]; sprintf(tmp_string, "Input file %s open error\n", file_in);
           m_log.print_this(tmp_string, 10);
-          exit(1);     
+          exit(1);
         }
         num_channels++;
       }
@@ -409,7 +409,7 @@ int FileInOut::Open_Input_Channels()
       num_channels++;
     }
 
-  } 
+  }
 
   //we save the file info
   m_frames = file_info.frames;
