@@ -6,7 +6,7 @@ facilitate the use of the tool by whoever finds it useful, we have changed the
 BeamformIt code license to be Apache 2.0 (see the license below).
 
 
-Together the with core BeamformIt code we are also distributing other open source 
+Together with the core BeamformIt code we are also distributing other open source 
 code modules whose licenses are listed here:
 
 === FFTReal license ===
@@ -26,6 +26,15 @@ as the name is changed.
  0. You just DO WHAT THE FUCK YOU WANT TO.
 
 === end of FFTReal license ===
+
+In addition, some of the files might have in the header a copyright notice like the following:
+
+# Copyright 2015, Mitsubishi Electric Research Laboratories, MERL (Author: Shinji Watanabe)
+
+The purpose of these headers is mostly informative and does not restrict the license of the whole package, 
+which remains Apache License (see below).
+
+======
 
 Below is a list of the contributors to the code. Unless otherwise stated in the header 
 of the source files contributed by these people, all contributions follow the Apache 2.0 
