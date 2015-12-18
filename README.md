@@ -36,10 +36,13 @@ In Ubuntu, you can install libsndfile `sudo apt-get install libsndfile1-dev`
 
 Additionally, doxygen can be used to compile the documentation of the source-code
 
-To compile the code, first of all, you need to make sure that the Makefile is pointing to the right directories for the sndfile library (or that it has been installed in the system). 
+To compile the code, first of all, you need to make sure that the Makefile is pointing to the right directories for the sndfile library (or that it has been installed in the system).
 The program uses cmake to compile the code. This means we can usually compile with:
 `cmake .`
 `make`
+
+Note: if sndfile is not installed in the system (and you do not want to do it) and the compilation complains you can repeate the cmake command as follows:
+`cmake -DLIBSND_INSTALL_DIR=/libsnd/install/dir .`
 
 You can also type `make clean` to clean up any executable or .o files left from previous compilations.
 To compile the code documentation execute `make documentation`, this should create a doxigen documentation structure under docs.
