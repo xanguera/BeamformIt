@@ -165,7 +165,12 @@ int FileInOut::Open_Input_Channels()
       else
       {
       */
-        char tmp_string[1024]; sprintf(tmp_string, "ERROR: Input file %s open error\n", file_name);
+        char tmp_string[1024];
+        snprintf(tmp_string,
+          sizeof(tmp_string),
+          "ERROR: Input file %s open error: %s\n",
+          file_name,
+          sf_strerror(NULL));
         m_log.print_this(tmp_string, 10);
         exit(1);
         //}
