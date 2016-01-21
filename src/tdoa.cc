@@ -10,9 +10,6 @@
 #include "tdoa.h"
 #include "fileinout.h"
 #include "global.h"
-#include "fftw3.h"
-
-//char tmp_string[1024];
 
 /*!
   Constructor

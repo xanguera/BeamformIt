@@ -5,12 +5,9 @@
 #include "support.h"
 #include "sndfile.h"
 #include "fileinout.h"
-//#include "delaysum.h"
-//#include "boost/program_options.hpp"
 
 #include "ffft/FFTReal.h"
 
-//namespace po = boost::program_options;
 using namespace std;
 
 class TDOA
@@ -26,10 +23,10 @@ public:
 	void print_delays(int sampleRateInMs);
 	float find_nbest_maximums(int *delays, float *values, int amount_max, float *xcorr_value, int margin, int fftwindow_size);
 
-    float xcorrelation_FFTReal(int *delays, float *values, int amount_max, float *chan_data, float *ref_data, int margin, int window, int fftwindow);
-    vector<int> xcorrelation_FFTReal_full(long counter, vector<vector<float> > chanData);
+	float xcorrelation_FFTReal(int *delays, float *values, int amount_max, float *chan_data, float *ref_data, int margin, int window, int fftwindow);
+  vector<int> xcorrelation_FFTReal_full(long counter, vector<vector<float> > chanData);
 
-    void Optimum_delays_write_out();
+  void Optimum_delays_write_out();
 	vector<int> get_bestChDelays(int numDelay);
 
 	//setters and getters
