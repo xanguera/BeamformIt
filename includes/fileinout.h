@@ -32,6 +32,7 @@ public:
 	void init();
 	int readChanData(int channel, float* chanData, long startSample, int numSamples);
 	void delays_to_file(vector<vector<vector<int> > > & finalDelays, vector<vector<vector<float> > > & finalXcorrValues, float UEMGap);
+
 	void Open_Output_Channels();
 	int Open_Input_Channels();
 	void Close_Channels();

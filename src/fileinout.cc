@@ -472,8 +472,8 @@ void FileInOut::Open_Output_Channels()
         break;
     }
 
-    sprintf(tmp_string, "Current settings are %d %d %d\n", file_info.samplerate, file_info.channels, file_info.format);
-    m_log.print_this(tmp_string, 1);
+    //sprintf(tmp_string, "Current settings are %d %d %d\n", file_info.samplerate, file_info.channels, file_info.format);
+    //m_log.print_this(tmp_string, 1);
 
     //open file for 1st best
     sprintf(tmp_string, "Opening %s file\n", m_fileOut);
@@ -647,24 +647,29 @@ void FileInOut::delays_to_file(vector<vector<vector<int> > > & finalDelays, vect
     fprintf(delfd2,"\n");
   }
   //we fill up the rest of the delays to match the length of the file by replicating the final ones
-  unsigned int full_amount_delays = (unsigned int)((m_frames - UEMGap)/((*m_config).rate*m_sampleRateInMs)) + 10; //the extra 10 are to ensure we ALWAYS create more delays than acoustic features
-  for(count = finalDelays[0].size(); count<full_amount_delays; count++)
+  //NOTE that, in addition, we can add some extra delays to ensure the number of delays always exceeds the length of the audio file
+  //This is useful for some applications combining delays and acoustic features.
+  if((*m_config).DO_DELAYS_PADDING)
   {
-    frame = (*m_config).rate*count+(long)(UEMGap);
-    fprintf(delfd,"%ld ->", frame);
-    fprintf(delfd2,"%ld ->", frame);
-    //for each channel print their delays
-    for(int channel_count=0; channel_count<m_numCh; channel_count++)
-    {
-      fprintf(delfd," %d %f ",finalDelays[channel_count][finalDelays[0].size()-1][0], finalXcorrValues[channel_count][finalDelays[0].size()-1][0]);
-      fprintf(delfd2," %d %f ",finalDelays[channel_count][finalDelays[0].size()-1][1], finalXcorrValues[channel_count][finalDelays[0].size()-1][1]);
+      unsigned int full_amount_delays = (unsigned int)((m_frames - UEMGap)/((*m_config).rate*m_sampleRateInMs)) + (*m_config).extra_delays_padding;
+      for(count = finalDelays[0].size(); count<full_amount_delays; count++)
+      {
+        frame = (*m_config).rate*count+(long)(UEMGap);
+        fprintf(delfd,"%ld ->", frame);
+        fprintf(delfd2,"%ld ->", frame);
+        //for each channel print their delays
+        for(int channel_count=0; channel_count<m_numCh; channel_count++)
+        {
+          fprintf(delfd," %d %f ",finalDelays[channel_count][finalDelays[0].size()-1][0], finalXcorrValues[channel_count][finalDelays[0].size()-1][0]);
+          fprintf(delfd2," %d %f ",finalDelays[channel_count][finalDelays[0].size()-1][1], finalXcorrValues[channel_count][finalDelays[0].size()-1][1]);
 
-    }
-    fprintf(delfd,"\n");
-    fprintf(delfd2,"\n");
+        }
+        fprintf(delfd,"\n");
+        fprintf(delfd2,"\n");
+      }
   }
-
 }
+
 
 /*!
   Read the acoustic data from the channel files

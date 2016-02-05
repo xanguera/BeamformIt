@@ -54,6 +54,8 @@ void parse_options::parse_params(int argc, char *argv[])
     add_param("do_signal_quality", "", "int", &((*m_config).DO_SIGNAL_QUALITY), false, "0", "flag whether to compute signal quality from the resulting audio signal");
     add_param("bad_frames_ratio", "", "int", &((*m_config).badFramesRatio), false, "10", "Sets the threshold to separate bad from good frames, the higher the value, the less bad frames");
     add_param("ref_adapt_ratio", "", "int", &((*m_config).refAdaptRatio), false, "0.05", "Dynamic reference channel selection adaptation ratio");
+    add_param("do_delays_padding", "", "int", &((*m_config).DO_DELAYS_PADDING), false, "1", "Flag to add extra delays at the end of the computed ones to try filling all the acoustic data, which were not computed due to a large analysis data");
+    add_param("extra_delays_padding", "", "int", &((*m_config).extra_delays_padding), false, "10", "Number of extra padding delays appended in addition to the regular padding to the end of the computed delays. Relevant to ensure the number of delays exceeds the length of the file in some applications");
 
   //parse all input params from the command line
   if(processCommandLine(argc, argv) == false)

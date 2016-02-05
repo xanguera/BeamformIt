@@ -41,6 +41,7 @@ struct Configuration
     int DO_SIGNAL_QUALITY; //flag to compute a signal quality measure from the output file
     int DO_COMPUTE_SKEW; //flag to whether we compute the skew between signals
     int DO_OUTPUT_OVERLAP; //flag whether to compute possile overlaps from the audio
+    int DO_DELAYS_PADDING; //flag whether to add extra delays to better cover all acoustics
 
     string AUDIOROOT; //where to look for the audio files
     string RESULTPATH; //where we write the resulting files
@@ -56,6 +57,7 @@ struct Configuration
 
     int margin; //area in ms around where we seach for the max of the autocorrelation
     int marginFrames; //same as margin, but in number of frames
+    int extra_delays_padding; //number of repeated delays appended to the end in the output file
 
     int skewMargin; //area in ms around where we search for the skew between signals
 

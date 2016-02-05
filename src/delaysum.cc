@@ -66,6 +66,8 @@ void DelaySum::init()
   m_refData.resize((*m_config).windowFrames, 0);
 
   //we compute how many delays we will process
+  //NOTE: we are taking a flooring of the resulting value. This means we will be missing a bit of the end of the audio,
+  //      which should not be dramatic for most applications
   int totalNumDelays = (int)((m_frames - (*m_config).windowFrames - m_biggestSkew - m_UEMGap)/((*m_config).rate*m_sampleRateInMs));
   (*m_tdoa).set_totalNumDelays(totalNumDelays);
 
@@ -873,7 +875,7 @@ void DelaySum::Compute_Sum_Weights(int frame)
 
   //convert local xcorrs into weights and adapt the global weight
   float output_weight[m_numCh];
-  double local_xcorr_weight[m_numCh];
+  vector<double> local_xcorr_weight(m_numCh);
 
   fprintf((*m_fileInOut).featwfd,"0 %d ", frame);
   for(int channel_count=0; channel_count< m_numCh; channel_count++)
@@ -908,7 +910,6 @@ void DelaySum::Compute_Sum_Weights(int frame)
     }
   }
   fprintf((*m_fileInOut).featwfd,"\n");
-
 
   //after adaptation we renormalize again (now the global xcorr weight)
   float sum_output_weights = 0;
