@@ -24,16 +24,19 @@ set (LIBSND_INSTALL_DIR "" CACHE FILEPATH "Directory where libsndfile was instal
 ##find libraries installed in the system
 FIND_LIBRARY(LIBSNDFILE sndfile ${LIBSND_INSTALL_DIR}/lib)
 
+find_package(PkgConfig)
+pkg_search_module(FFTW3 REQUIRED fftw3)
+
 ##set particular settings for each architecture
 set (FFTREAL_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/external/FFTReal-2.11)
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-  set(os_link_libs /usr/local/lib /opt/local/lib)
-  set(os_include_libs /opt/local/include ${FFTREAL_HDRS})
-  set(os_libs ${LIBSNDFILE})
+  set(os_link_libs /usr/local/lib /opt/local/lib ${FFTW3_LIBRARY_DIRS})
+  set(os_include_libs /opt/local/include ${FFTREAL_HDRS} ${FFTW3_INCLUDE_DIRS})
+  set(os_libs ${LIBSNDFILE} ${FFTW3_LIBRARIES})
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
-  set(os_link_libs /usr/lib)
-  set(os_include_libs /opt/local/include ${FFTREAL_HDRS})
-  set(os_libs ${LIBSNDFILE})
+  set(os_link_libs /usr/lib ${FFTW3_LIBRARY_DIRS})
+  set(os_include_libs /opt/local/include ${FFTREAL_HDRS} ${FFTW3_INCLUDE_DIRS})
+  set(os_libs ${LIBSNDFILE} ${FFTW3_LIBRARIES})
 endif()
 
 ##set some generic link directories
