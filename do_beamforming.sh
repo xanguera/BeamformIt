@@ -39,6 +39,7 @@ done
     --do_use_uem_file 0 \
     --do_adapt_weights 1 \
     --do_write_sph_files 1 \
+    --source_dir . \
     --channels_file ./output/${outName}/channels_file \
     --show_id ${outName} \
     --result_dir ./output/${outName}
