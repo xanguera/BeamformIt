@@ -1,6 +1,8 @@
 # BeamformIt
 #### acoustic beamforming tool
 
+Project page: **https://xavieranguera.com/beamformit**
+
 
 **BeamformIt** is an acoustic beamforming tool that accepts a variable amount of input channels and computes an output via a filter&sum beamforming technique. It makes almost no assumptions on the input data (e.g. number of channels, topology, locations, individual channel audio quality, ...).
 
@@ -8,7 +10,7 @@ BeamformIt was originally implemented by [Xavier Anguera](http://www.xavierangue
 
 BeamformIt was initially focused towards processing the data used in the RT evaluations but it can now process all sorts of data. As of version 3.5 an effort has been made to eliminate almost all external library dependencies and a script has been created for "casual" beamforming users to have an easy-to-use tool for their acoustic beamforming needs.
 
-Prior to its release into Github, BeamformIt was released via [this website](http://www.xavieranguera.com/beamformit/) with a versioning system. As of version 3.51 all releases will be done through Github. Following [Kaldi](https://github.com/kaldi-asr/kaldi)'s philosofy, we will not set new versions (but will try to keep a log of key changes [below](#changelog)).
+Prior to its release into Github, BeamformIt was released via [this website](https://xavieranguera.com/beamformit) with a versioning system. As of version 3.51 all releases will be done through Github. Following [Kaldi](https://github.com/kaldi-asr/kaldi)'s philosofy, we will not set new versions (but will try to keep a log of key changes [below](#changelog)).
 
 If you use the software for research I would very much appreciate if you could cite my work, you can use any of the following citations:
 "Acoustic beamforming for speaker diarization of meetings", Xavier Anguera, Chuck Wooters and Javier Hernando, IEEE Transactions on Audio, Speech and Language Processing, September 2007, volume 15, number 7, pp.2011-2023.
@@ -85,7 +87,7 @@ The total number of channels is obtained automatically from this list of files. 
 The files in the channels file lists can either contain acoustic data for a single channel or data for multiple channels (as is the case of AMI circular arrays data). BeamformIt will process either case without any problem. In the case of multiple channels it will create a set of temporal files containing only 1 channel each. These are created in the output directory and can be deleted by hand after execution.
 
 * `cfg-files/RT06s_conf.cfg`: contains most of the configuration parameters passed to the system. The rest of the parameters are passed through command line arguments and usually refer to parameters changing for each show.
-For all parameters there normally is a default value as optimized for the ICSI speaker diarization system and documented in [my thesis](www.xavieranguera.com/phdthesis) (note that names might have changed a bit over the years...). A similar explanation of each parameter is also available running the program with --help. The typical parameters in the configuration file are:
+For all parameters there normally is a default value as optimized for the ICSI speaker diarization system and documented in [my thesis](https://xavieranguera.com/phdthesis/) (note that names might have changed a bit over the years...). A similar explanation of each parameter is also available running the program with --help. The typical parameters in the configuration file are:
 
     Parameter | default value | Description
     --- | --- | ---
